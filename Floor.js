@@ -1,4 +1,4 @@
-
+import Request from './Request';
 
 export default class Floor {
   constructor({ id, bank }) {
@@ -6,6 +6,6 @@ export default class Floor {
     this.id = id;
   }
   request(floor) {
-    return this.bank.request(floor, id);
+    return this.bank.request(new Request(floor, id));
   }
 }

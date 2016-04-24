@@ -5,18 +5,23 @@ export default class Elevator {
     this.id = id;
     this.floor = floor;
     this.totalFloors = totalFloors;
+    this.destinations = [];
     this.requests = [];
     this.direction = 0;
     this.door = 'closed';
+    this.operational = true;
+    this.trips = 0;
+
+    this.factor = 1 / totalFloors;
   }
 
   move() {
     this.floor += this.direction;
 
-    let fufilledRequestIdx = this.requests.indexOf(this.floor);
+    let fufilledRequestIdx = this.destinations.indexOf(this.floor);
     if (~fufilledRequestIdx) {
       this.log('opened doors on');
-      this.requests.splice(fufilledRequestIdx, 1);
+      this.destinations.splice(fufilledRequestIdx, 1);
     }
     this.log('moved to');
 
@@ -33,27 +38,73 @@ export default class Elevator {
       return 0;
     }
 
-    return this._direction = this.floor > this.requests[this.requests.length - 1] ? -1 : 1;
+    this.trips += 1;
+    if (this.trips === 100) {
+      this.requests.map(request => {
+        request.current = this.floor;
+        this.bank.request(request);
+      })
+    }
+    return this._direction = this.floor > this.destinations[this.destinations.length - 1] ? -1 : 1;
   }
 
-  assign(desired, current) {
-    this.requests.push(desired, current);
-    this.requests.sort();
+  get goingUp() {
+    return this._direction > 0;
+  }
+
+  get goingDown() {
+    return this._direction < 0;
+  }
+
+  get destination() {
+    return this.destinations[this.destinations.length - 1];
+  }
+
+  assign(request) {
+    this.requests.push(request);
+    this.destinations.push(request.current, request.desired);
+    this.destinations.sort();
     return this;
   }
 
-  rate(desired) {
+  rate(request) {
+    if (!this.operational) {
+      this.log('requires service on');
+      return Infinity;
+    }
+
+    let current = request.current;
+    let dest = this.destination;
+
     // On the floor currently. Best score
-    if (this.floor === desired) return 0;
+    if (this.floor === current) return 0;
 
-    if ([this.floor, desired, this.destination])
+    let distance = Math.abs(this.floor - desired);
 
-    // No current requests. Score is distance.
-    if (!this.request.length) return Math.abs(this.floor - desired);
-    if (desired < this.current && desired >
+    if (
+      // Going up
+      this.goingUp
+      && (
+        // New destination is farther
+        current > dest
+        // On the way
+        || current < dest && current > this.floor
+      )
+      || this.goingDown
+      && (
+        current < dest
+        || current > dest && current < this.floor
+      )
+    ) {
+      // Return a better score proportionally to potential distance.
+      return distance * this.factor;
+    }
+
+    // No current destinations. Score is distance.
+    if (!this.destinations.length) return ;
   }
 
   log(msg) {
-    console.log(`Elevator ${this.id} ${msg} "${this.floor} floor.`);
+    console.log(`Elevator "${this.id}" ${msg} "${this.floor}" floor.`);
   }
 }
