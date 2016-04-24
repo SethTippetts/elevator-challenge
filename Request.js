@@ -1,6 +1,6 @@
 export default class Request {
-  constructor(starting, ending) {
-    this.starting = starting;
-    this.ending = ending;
+  constructor(current, desired) {
+    this.current = current;
+    this.desired = desired;
   }
 }
