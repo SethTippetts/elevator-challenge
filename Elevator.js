@@ -1,28 +1,37 @@
 
 
 export default class Elevator {
-  constructor({ id, floor = 0, bank, totalFloors }) {
+  constructor({ id, floor = 0, bank }) {
     this.id = id;
     this.floor = floor;
-    this.totalFloors = totalFloors;
+    this.totalFloors = bank.floors.length;
     this.destinations = [];
     this.requests = [];
     this.direction = 0;
     this.door = 'closed';
     this.operational = true;
     this.trips = 0;
+    this.floorsPassed = 0;
 
     this.factor = 1 / totalFloors;
   }
 
   move() {
-    this.floor += this.direction;
+    // Without Zack
+    let direction = this.direction;
+
+    // 8. The elevator should keep track of how many floors it has passed.
+    if (direction) this.floorsPassed++;
+    this.floor += direction;
 
     let fufilledRequestIdx = this.destinations.indexOf(this.floor);
     if (~fufilledRequestIdx) {
+      // 3. Each elevator will report when it opens or closes its doors.
       this.log('opened doors on');
       this.destinations.splice(fufilledRequestIdx, 1);
     }
+
+    // 2. Each elevator will report as is moves from floor to floor.
     this.log('moved to');
 
     if (!this.request.length) this.direction = null;
@@ -38,12 +47,16 @@ export default class Elevator {
       return 0;
     }
 
-    this.trips += 1;
+    // 8. The elevator should keep track of how many trips it has made
+    this.trips++;
+
+    // 8. The elevator should go into maintenance mode after 100 trips
     if (this.trips === 100) {
       this.requests.map(request => {
         request.current = this.floor;
         this.bank.request(request);
-      })
+      });
+      this.operational = false;
     }
     return this._direction = this.floor > this.destinations[this.destinations.length - 1] ? -1 : 1;
   }
@@ -69,6 +82,8 @@ export default class Elevator {
 
   rate(request) {
     if (!this.operational) {
+
+      // 8. Stop functioning until serviced, therefore not be available for elevator calls.
       this.log('requires service on');
       return Infinity;
     }
@@ -101,7 +116,7 @@ export default class Elevator {
     }
 
     // No current destinations. Score is distance.
-    if (!this.destinations.length) return ;
+    if (!this.destinations.length) return distance;
   }
 
   log(msg) {
