@@ -1,8 +1,7 @@
 import Elevator from './Elevator';
 import Floor from './Floor';
-import Bluebird from 'bluebird';
 
-export class Bank {
+export default class Bank {
   constructor({ elevators = 5, floors = 5}) {
     // 1. Initialize the elevator simulation with the
     // desired number of elevators, and the desired
@@ -33,7 +32,5 @@ export class Bank {
 
 function fill(number = 1, Class, bank) {
   let arr = new Array(Math.max(number, 1));
-  return arr.map((el, idx) => {
-    return new Class({ id: idx, bank });
-  });
+  return arr.map((el, idx) => new Class({ id: idx, bank }));
 }

@@ -75,7 +75,8 @@ export default class Elevator {
 
   assign(request) {
     this.requests.push(request);
-    this.destinations.push(request.current, request.desired);
+    if (!~this.destinations.indexOf(request.current)) this.destinations.push(request.current);
+    if (!~this.destinations.indexOf(request.desired)) this.destinations.push(request.desired);
     this.destinations.sort();
     return this;
   }
